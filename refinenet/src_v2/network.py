@@ -6,7 +6,9 @@ from models.resnet import rf_lw50, rf_lw101, rf_lw152
 
 
 def get_segmenter(
-    enc_backbone, enc_pretrained, num_classes,
+    enc_backbone,
+    enc_pretrained,
+    num_classes,
 ):
     """Create Encoder-Decoder; for now only ResNet [50,101,152] Encoders are supported"""
     if enc_backbone == "50":

@@ -37,19 +37,30 @@ def batchnorm(in_planes):
 
 def conv3x3(in_planes, out_planes, stride=1, bias=False):
     "3x3 convolution with padding"
-    return nn.Conv2d(
-        in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=bias
-    )
+    return nn.Conv2d(in_planes,
+                     out_planes,
+                     kernel_size=3,
+                     stride=stride,
+                     padding=1,
+                     bias=bias)
 
 
 def conv1x1(in_planes, out_planes, stride=1, bias=False):
     "1x1 convolution"
-    return nn.Conv2d(
-        in_planes, out_planes, kernel_size=1, stride=stride, padding=0, bias=bias
-    )
+    return nn.Conv2d(in_planes,
+                     out_planes,
+                     kernel_size=1,
+                     stride=stride,
+                     padding=0,
+                     bias=bias)
 
 
-def convbnrelu(in_planes, out_planes, kernel_size, stride=1, groups=1, act=True):
+def convbnrelu(in_planes,
+               out_planes,
+               kernel_size,
+               stride=1,
+               groups=1,
+               act=True):
     "conv-batchnorm-relu"
     if act:
         return nn.Sequential(
@@ -81,6 +92,7 @@ def convbnrelu(in_planes, out_planes, kernel_size, stride=1, groups=1, act=True)
 
 
 class CRPBlock(nn.Module):
+
     def __init__(self, in_planes, out_planes, n_stages):
         super(CRPBlock, self).__init__()
         for i in range(n_stages):

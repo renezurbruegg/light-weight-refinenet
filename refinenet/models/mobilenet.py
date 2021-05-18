@@ -32,12 +32,13 @@ import torch.nn as nn
 from utils.helpers import maybe_download
 from utils.layer_factory import conv1x1, conv3x3, convbnrelu, CRPBlock
 
-
 data_info = {21: "VOC"}
 
 models_urls = {
-    "mbv2_voc": "https://cloudstor.aarnet.edu.au/plus/s/nQ6wDnTEFhyidot/download",
-    "mbv2_imagenet": "https://cloudstor.aarnet.edu.au/plus/s/uRgFbkaRjD3qOg5/download",
+    "mbv2_voc":
+        "https://cloudstor.aarnet.edu.au/plus/s/nQ6wDnTEFhyidot/download",
+    "mbv2_imagenet":
+        "https://cloudstor.aarnet.edu.au/plus/s/uRgFbkaRjD3qOg5/download",
 }
 
 
@@ -73,7 +74,8 @@ class MBv2(nn.Module):
     """Net Definition"""
 
     mobilenet_config = [
-        [1, 16, 1, 1],  # expansion rate, output channels, number of repeats, stride
+        [1, 16, 1,
+         1],  # expansion rate, output channels, number of repeats, stride
         [6, 24, 2, 2],
         [6, 32, 3, 2],
         [6, 64, 4, 2],
@@ -98,8 +100,7 @@ class MBv2(nn.Module):
                         c,
                         expansion_factor=t,
                         stride=s if idx == 0 else 1,
-                    )
-                )
+                    ))
                 self.in_planes = c
             setattr(self, "layer{}".format(c_layer), nn.Sequential(*layers))
             c_layer += 1
@@ -137,20 +138,26 @@ class MBv2(nn.Module):
         l7 = self.relu(l8 + l7)
         l7 = self.crp4(l7)
         l7 = self.conv_adapt4(l7)
-        l7 = nn.Upsample(size=l6.size()[2:], mode="bilinear", align_corners=True)(l7)
+        l7 = nn.Upsample(size=l6.size()[2:],
+                         mode="bilinear",
+                         align_corners=True)(l7)
 
         l6 = self.conv6(l6)
         l5 = self.conv5(l5)
         l5 = self.relu(l5 + l6 + l7)
         l5 = self.crp3(l5)
         l5 = self.conv_adapt3(l5)
-        l5 = nn.Upsample(size=l4.size()[2:], mode="bilinear", align_corners=True)(l5)
+        l5 = nn.Upsample(size=l4.size()[2:],
+                         mode="bilinear",
+                         align_corners=True)(l5)
 
         l4 = self.conv4(l4)
         l4 = self.relu(l5 + l4)
         l4 = self.crp2(l4)
         l4 = self.conv_adapt2(l4)
-        l4 = nn.Upsample(size=l3.size()[2:], mode="bilinear", align_corners=True)(l4)
+        l4 = nn.Upsample(size=l3.size()[2:],
+                         mode="bilinear",
+                         align_corners=True)(l4)
 
         l3 = self.conv3(l3)
         l3 = self.relu(l3 + l4)

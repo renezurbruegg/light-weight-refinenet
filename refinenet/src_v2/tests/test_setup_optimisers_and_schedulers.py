@@ -6,6 +6,7 @@ from train import setup_optimisers_and_schedulers
 
 
 class DummyEncDecModel(torch.nn.Module):
+
     def __init__(self):
         super(DummyEncDecModel, self).__init__()
         self.layer1 = torch.nn.Parameter(torch.FloatTensor(1, 2))

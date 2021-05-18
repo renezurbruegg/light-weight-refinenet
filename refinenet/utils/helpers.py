@@ -13,7 +13,8 @@ def maybe_download(model_name, model_url, model_dir=None, map_location=None):
 
     if model_dir is None:
         torch_home = os.path.expanduser(os.getenv("TORCH_HOME", "~/.torch"))
-        model_dir = os.getenv("TORCH_MODEL_ZOO", os.path.join(torch_home, "models"))
+        model_dir = os.getenv("TORCH_MODEL_ZOO",
+                              os.path.join(torch_home, "models"))
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
     filename = "{}.pth.tar".format(model_name)

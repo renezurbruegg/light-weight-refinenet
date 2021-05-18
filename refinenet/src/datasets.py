@@ -69,8 +69,7 @@ class Pad(object):
                     pad,
                     mode="constant",
                     constant_values=self.img_val[c],
-                )
-                for c in range(3)
+                ) for c in range(3)
             ],
             axis=2,
         )
@@ -99,8 +98,8 @@ class RandomCrop(object):
         new_w = min(w, self.crop_size)
         top = np.random.randint(0, h - new_h + 1)
         left = np.random.randint(0, w - new_w + 1)
-        image = image[top : top + new_h, left : left + new_w]
-        mask = mask[top : top + new_h, left : left + new_w]
+        image = image[top:top + new_h, left:left + new_w]
+        mask = mask[top:top + new_h, left:left + new_w]
         return {"image": image, "mask": mask}
 
 
@@ -119,12 +118,16 @@ class ResizeShorterScale(object):
         scale = np.random.uniform(self.low_scale, self.high_scale)
         if min_side * scale < self.shorter_side:
             scale = self.shorter_side * 1.0 / min_side
-        image = cv2.resize(
-            image, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC
-        )
-        mask = cv2.resize(
-            mask, None, fx=scale, fy=scale, interpolation=cv2.INTER_NEAREST
-        )
+        image = cv2.resize(image,
+                           None,
+                           fx=scale,
+                           fy=scale,
+                           interpolation=cv2.INTER_CUBIC)
+        mask = cv2.resize(mask,
+                          None,
+                          fx=scale,
+                          fy=scale,
+                          interpolation=cv2.INTER_NEAREST)
         return {"image": image, "mask": mask}
 
 
@@ -177,13 +180,20 @@ class ToTensor(object):
         # numpy image: H x W x C
         # torch image: C X H X W
         image = image.transpose((2, 0, 1))
-        return {"image": torch.from_numpy(image), "mask": torch.from_numpy(mask)}
+        return {
+            "image": torch.from_numpy(image),
+            "mask": torch.from_numpy(mask)
+        }
 
 
 class NYUDataset(Dataset):
     """NYUv2-40"""
 
-    def __init__(self, data_file, data_dir, transform_trn=None, transform_val=None):
+    def __init__(self,
+                 data_file,
+                 data_dir,
+                 transform_trn=None,
+                 transform_val=None):
         """
         Args:
             data_file (string): Path to the data file with annotations.
@@ -193,12 +203,8 @@ class NYUDataset(Dataset):
         """
         with open(data_file, "rb") as f:
             datalist = f.readlines()
-        self.datalist = [
-            (k, v)
-            for k, v in map(
-                lambda x: x.decode("utf-8").strip("\n").split("\t"), datalist
-            )
-        ]
+        self.datalist = [(k, v) for k, v in map(
+            lambda x: x.decode("utf-8").strip("\n").split("\t"), datalist)]
         self.root_dir = data_dir
         self.transform_trn = transform_trn
         self.transform_val = transform_val
@@ -223,7 +229,8 @@ class NYUDataset(Dataset):
         image = read_image(img_name)
         mask = np.array(Image.open(msk_name))
         if img_name != msk_name:
-            assert len(mask.shape) == 2, "Masks must be encoded without colourmap"
+            assert len(
+                mask.shape) == 2, "Masks must be encoded without colourmap"
         sample = {"image": image, "mask": mask}
         if self.stage == "train":
             if self.transform_trn:

@@ -146,7 +146,10 @@ def get_arguments():
     )
 
     # Encoder
-    parser.add_argument("--enc", type=str, default=ENC, help="Encoder net type.")
+    parser.add_argument("--enc",
+                        type=str,
+                        default=ENC,
+                        help="Encoder net type.")
     parser.add_argument(
         "--enc-pretrained",
         type=bool,
@@ -192,9 +195,10 @@ def get_arguments():
         default=SNAPSHOT_DIR,
         help="Path to directory for storing checkpoints.",
     )
-    parser.add_argument(
-        "--ckpt-path", type=str, default=CKPT_PATH, help="Path to the checkpoint file."
-    )
+    parser.add_argument("--ckpt-path",
+                        type=str,
+                        default=CKPT_PATH,
+                        help="Path to the checkpoint file.")
     parser.add_argument(
         "--val-every",
         nargs="+",
@@ -318,17 +322,16 @@ def create_loaders(
     )
 
     ## Transformations during training ##
-    composed_trn = transforms.Compose(
-        [
-            ResizeShorterScale(shorter_side, low_scale, high_scale),
-            Pad(crop_size, [123.675, 116.28, 103.53], ignore_label),
-            RandomMirror(),
-            RandomCrop(crop_size),
-            Normalise(*normalise_params),
-            ToTensor(),
-        ]
-    )
-    composed_val = transforms.Compose([Normalise(*normalise_params), ToTensor()])
+    composed_trn = transforms.Compose([
+        ResizeShorterScale(shorter_side, low_scale, high_scale),
+        Pad(crop_size, [123.675, 116.28, 103.53], ignore_label),
+        RandomMirror(),
+        RandomCrop(crop_size),
+        Normalise(*normalise_params),
+        ToTensor(),
+    ])
+    composed_val = transforms.Compose(
+        [Normalise(*normalise_params), ToTensor()])
     ## Training and validation sets ##
     trainset = Dataset(
         data_file=train_list,
@@ -345,9 +348,7 @@ def create_loaders(
     )
     logger.info(
         " Created train set = {} examples, val set = {} examples".format(
-            len(trainset), len(valset)
-        )
-    )
+            len(trainset), len(valset)))
     ## Training and validation loaders ##
     train_loader = DataLoader(
         trainset,
@@ -357,27 +358,31 @@ def create_loaders(
         pin_memory=True,
         drop_last=True,
     )
-    val_loader = DataLoader(
-        valset, batch_size=1, shuffle=False, num_workers=num_workers, pin_memory=True
-    )
+    val_loader = DataLoader(valset,
+                            batch_size=1,
+                            shuffle=False,
+                            num_workers=num_workers,
+                            pin_memory=True)
     return train_loader, val_loader
 
 
-def create_optimisers(
-    lr_enc, lr_dec, mom_enc, mom_dec, wd_enc, wd_dec, param_enc, param_dec, optim_dec
-):
+def create_optimisers(lr_enc, lr_dec, mom_enc, mom_dec, wd_enc, wd_dec,
+                      param_enc, param_dec, optim_dec):
     """Create optimisers for encoder, decoder and controller"""
-    optim_enc = torch.optim.SGD(
-        param_enc, lr=lr_enc, momentum=mom_enc, weight_decay=wd_enc
-    )
+    optim_enc = torch.optim.SGD(param_enc,
+                                lr=lr_enc,
+                                momentum=mom_enc,
+                                weight_decay=wd_enc)
     if optim_dec == "sgd":
-        optim_dec = torch.optim.SGD(
-            param_dec, lr=lr_dec, momentum=mom_dec, weight_decay=wd_dec
-        )
+        optim_dec = torch.optim.SGD(param_dec,
+                                    lr=lr_dec,
+                                    momentum=mom_dec,
+                                    weight_decay=wd_dec)
     elif optim_dec == "adam":
-        optim_dec = torch.optim.Adam(
-            param_dec, lr=lr_dec, weight_decay=wd_dec, eps=1e-3
-        )
+        optim_dec = torch.optim.Adam(param_dec,
+                                     lr=lr_dec,
+                                     weight_decay=wd_dec,
+                                     eps=1e-3)
     return optim_enc, optim_dec
 
 
@@ -392,15 +397,12 @@ def load_ckpt(ckpt_path, ckpt_dict):
         epoch_start = ckpt.get("epoch_start", 0)
         logger.info(
             " Found checkpoint at {} with best_val {:.4f} at epoch {}".format(
-                ckpt_path, best_val, epoch_start
-            )
-        )
+                ckpt_path, best_val, epoch_start))
     return best_val, epoch_start
 
 
-def train_segmenter(
-    segmenter, train_loader, optim_enc, optim_dec, epoch, segm_crit, freeze_bn
-):
+def train_segmenter(segmenter, train_loader, optim_enc, optim_dec, epoch,
+                    segm_crit, freeze_bn):
     """Training segmenter
 
     Args:
@@ -429,9 +431,10 @@ def train_segmenter(
         target_var = torch.autograd.Variable(target).long()
         # Compute output
         output = segmenter(input_var)
-        output = nn.functional.interpolate(
-            output, size=target_var.size()[1:], mode="bilinear", align_corners=False
-        )
+        output = nn.functional.interpolate(output,
+                                           size=target_var.size()[1:],
+                                           mode="bilinear",
+                                           align_corners=False)
         soft_output = nn.LogSoftmax()(output)
         # Compute loss and backpropagate
         loss = segm_crit(soft_output, target_var)
@@ -443,13 +446,10 @@ def train_segmenter(
         losses.update(loss.item())
         batch_time.update(time.time() - start)
         if i % args.print_every == 0:
-            logger.info(
-                " Train epoch: {} [{}/{}]\t"
-                "Avg. Loss: {:.3f}\t"
-                "Avg. Time: {:.3f}".format(
-                    epoch, i, len(train_loader), losses.avg, batch_time.avg
-                )
-            )
+            logger.info(" Train epoch: {} [{}/{}]\t"
+                        "Avg. Loss: {:.3f}\t"
+                        "Avg. Time: {:.3f}".format(epoch, i, len(train_loader),
+                                                   losses.avg, batch_time.avg))
 
 
 def validate(segmenter, val_loader, epoch, num_classes=-1):
@@ -474,15 +474,11 @@ def validate(segmenter, val_loader, epoch, num_classes=-1):
             input_var = torch.autograd.Variable(input).float().cuda()
             # Compute output
             output = segmenter(input_var)
-            output = (
-                cv2.resize(
-                    output[0, :num_classes].data.cpu().numpy().transpose(1, 2, 0),
-                    target.size()[1:][::-1],
-                    interpolation=cv2.INTER_CUBIC,
-                )
-                .argmax(axis=2)
-                .astype(np.uint8)
-            )
+            output = (cv2.resize(
+                output[0, :num_classes].data.cpu().numpy().transpose(1, 2, 0),
+                target.size()[1:][::-1],
+                interpolation=cv2.INTER_CUBIC,
+            ).argmax(axis=2).astype(np.uint8))
             # Compute IoU
             gt = target[0].data.cpu().numpy().astype(np.uint8)
             gt_idx = (
@@ -491,12 +487,9 @@ def validate(segmenter, val_loader, epoch, num_classes=-1):
             cm += fast_cm(output[gt_idx], gt[gt_idx], num_classes)
 
             if i % args.print_every == 0:
-                logger.info(
-                    " Val epoch: {} [{}/{}]\t"
-                    "Mean IoU: {:.3f}".format(
-                        epoch, i, len(val_loader), compute_iu(cm).mean()
-                    )
-                )
+                logger.info(" Val epoch: {} [{}/{}]\t"
+                            "Mean IoU: {:.3f}".format(epoch, i, len(val_loader),
+                                                      compute_iu(cm).mean()))
 
     ious = compute_iu(cm)
     logger.info(" IoUs: {}".format(ious))
@@ -520,13 +513,12 @@ def main():
     random.seed(args.random_seed)
     ## Generate Segmenter ##
     segmenter = nn.DataParallel(
-        create_segmenter(args.enc, args.enc_pretrained, args.num_classes[0])
-    ).cuda()
+        create_segmenter(args.enc, args.enc_pretrained,
+                         args.num_classes[0])).cuda()
     logger.info(
-        " Loaded Segmenter {}, ImageNet-Pre-Trained={}, #PARAMS={:3.2f}M".format(
-            args.enc, args.enc_pretrained, compute_params(segmenter) / 1e6
-        )
-    )
+        " Loaded Segmenter {}, ImageNet-Pre-Trained={}, #PARAMS={:3.2f}M".
+        format(args.enc, args.enc_pretrained,
+               compute_params(segmenter) / 1e6))
     ## Restore if any ##
     best_val, epoch_start = load_ckpt(args.ckpt_path, {"segmenter": segmenter})
     ## Criterion ##
@@ -560,9 +552,10 @@ def main():
             args.ignore_label,
         )
         if args.evaluate:
-            return validate(
-                segmenter, val_loader, 0, num_classes=args.num_classes[task_idx]
-            )
+            return validate(segmenter,
+                            val_loader,
+                            0,
+                            num_classes=args.num_classes[task_idx])
 
         logger.info(" Training Stage {}".format(str(task_idx)))
         ## Optimisers ##
@@ -597,23 +590,21 @@ def main():
                 args.freeze_bn[task_idx],
             )
             if (epoch + 1) % (args.val_every[task_idx]) == 0:
-                miou = validate(
-                    segmenter, val_loader, epoch_start, args.num_classes[task_idx]
-                )
+                miou = validate(segmenter, val_loader, epoch_start,
+                                args.num_classes[task_idx])
                 saver.save(
                     miou,
-                    {"segmenter": segmenter.state_dict(), "epoch_start": epoch_start},
+                    {
+                        "segmenter": segmenter.state_dict(),
+                        "epoch_start": epoch_start
+                    },
                     logger,
                 )
             epoch_start += 1
-        logger.info(
-            "Stage {} finished, time spent {:.3f}min".format(
-                task_idx, (time.time() - start) / 60.0
-            )
-        )
-    logger.info(
-        "All stages are now finished. Best Val is {:.3f}".format(saver.best_val)
-    )
+        logger.info("Stage {} finished, time spent {:.3f}min".format(
+            task_idx, (time.time() - start) / 60.0))
+    logger.info("All stages are now finished. Best Val is {:.3f}".format(
+        saver.best_val))
 
 
 if __name__ == "__main__":

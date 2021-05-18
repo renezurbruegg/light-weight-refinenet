@@ -7,7 +7,6 @@ import densetorch as dt
 
 from network import get_segmenter, get_encoder_and_decoder_params
 
-
 NUMBER_OF_PARAMETERS_WITH_21_CLASSES = {
     "152": 61993301,
     "101": 46349653,
@@ -49,22 +48,17 @@ def input_width():
 
 @pytest.mark.parametrize("enc_backbone", ["50", "101", "152", "mbv2"])
 @pytest.mark.parametrize("enc_pretrained", [False, True])
-def test_networks(enc_backbone, enc_pretrained, num_classes, input_height, input_width):
+def test_networks(enc_backbone, enc_pretrained, num_classes, input_height,
+                  input_width):
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    network = (
-        get_segmenter(
-            enc_backbone=enc_backbone,
-            enc_pretrained=enc_pretrained,
-            num_classes=num_classes,
-        )
-        .eval()
-        .to(device)
-    )
+    network = (get_segmenter(
+        enc_backbone=enc_backbone,
+        enc_pretrained=enc_pretrained,
+        num_classes=num_classes,
+    ).eval().to(device))
     if num_classes == 21:
-        assert (
-            dt.misc.compute_params(network)
-            == NUMBER_OF_PARAMETERS_WITH_21_CLASSES[enc_backbone]
-        )
+        assert (dt.misc.compute_params(network) ==
+                NUMBER_OF_PARAMETERS_WITH_21_CLASSES[enc_backbone])
 
     enc_params, dec_params = get_encoder_and_decoder_params(network)
     n_enc_layers, n_dec_layers = NUMBER_OF_ENCODER_DECODER_LAYERS[enc_backbone]
@@ -72,9 +66,8 @@ def test_networks(enc_backbone, enc_pretrained, num_classes, input_height, input
     assert len(dec_params) == n_dec_layers
 
     with torch.no_grad():
-        input_tensor = get_dummy_input_tensor(
-            height=input_height, width=input_width
-        ).to(device)
+        input_tensor = get_dummy_input_tensor(height=input_height,
+                                              width=input_width).to(device)
         output_h, output_w = get_network_output_shape(*input_tensor.shape[-2:])
         output = network(input_tensor)
         assert output.size(1) == num_classes

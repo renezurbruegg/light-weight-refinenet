@@ -60,30 +60,26 @@ def albumentations_transforms(
     train_transforms = []
     for stage in range(num_stages):
         train_transforms.append(
-            wrapper(
-                [
-                    OneOf(
-                        [
-                            RandomScale(
-                                scale_limit=(low_scale[stage], high_scale[stage])
-                            ),
-                            LongestMaxSize(max_size=shorter_side[stage]),
-                            SmallestMaxSize(max_size=shorter_side[stage]),
-                        ]
-                    ),
-                    PadIfNeeded(
-                        min_height=crop_size[stage],
-                        min_width=crop_size[stage],
-                        border_mode=cv2.BORDER_CONSTANT,
-                        value=np.array(img_mean) / img_scale,
-                        mask_value=ignore_label,
-                    ),
-                    HorizontalFlip(p=0.5,),
-                    RandomCrop(height=crop_size[stage], width=crop_size[stage],),
-                ]
-                + common_transformations
-            )
-        )
+            wrapper([
+                OneOf([
+                    RandomScale(scale_limit=(low_scale[stage],
+                                             high_scale[stage])),
+                    LongestMaxSize(max_size=shorter_side[stage]),
+                    SmallestMaxSize(max_size=shorter_side[stage]),
+                ]),
+                PadIfNeeded(
+                    min_height=crop_size[stage],
+                    min_width=crop_size[stage],
+                    border_mode=cv2.BORDER_CONSTANT,
+                    value=np.array(img_mean) / img_scale,
+                    mask_value=ignore_label,
+                ),
+                HorizontalFlip(p=0.5,),
+                RandomCrop(
+                    height=crop_size[stage],
+                    width=crop_size[stage],
+                ),
+            ] + common_transformations))
     val_transforms = wrapper(common_transformations)
     return train_transforms, val_transforms
 
@@ -125,18 +121,13 @@ def densetorch_transforms(
     train_transforms = []
     for stage in range(num_stages):
         train_transforms.append(
-            wrapper(
-                [
-                    ResizeAndScale(
-                        shorter_side[stage], low_scale[stage], high_scale[stage]
-                    ),
-                    Pad(crop_size[stage], img_mean, ignore_label),
-                    RandomMirror(),
-                    RandomCrop(crop_size[stage]),
-                ]
-                + common_transformations
-            )
-        )
+            wrapper([
+                ResizeAndScale(shorter_side[stage], low_scale[stage],
+                               high_scale[stage]),
+                Pad(crop_size[stage], img_mean, ignore_label),
+                RandomMirror(),
+                RandomCrop(crop_size[stage]),
+            ] + common_transformations))
     val_transforms = wrapper(common_transformations)
     return train_transforms, val_transforms
 
@@ -219,8 +210,7 @@ def densetorch_dataset(
             line_to_paths_fn=line_to_paths_fn,
             masks_names=masks_names,
             transform=train_transforms[i],
-        )
-        for i in range(len(train_transforms))
+        ) for i in range(len(train_transforms))
     ]
     val_set = Dataset(
         data_file=val_list_path,
@@ -251,16 +241,21 @@ def torchvision_dataset(
     train_sets = []
     for i, stage in enumerate(stage_names):
         if stage.lower() == "voc":
-            Dataset = partial(VOCSegmentation, image_set="train", year="2012",)
+            Dataset = partial(
+                VOCSegmentation,
+                image_set="train",
+                year="2012",
+            )
         elif stage.lower() == "sbd":
-            Dataset = partial(SBDataset, mode="segmentation", image_set="train_noval")
+            Dataset = partial(SBDataset,
+                              mode="segmentation",
+                              image_set="train_noval")
         train_sets.append(
             Dataset(
                 root=train_dir[i],
                 transforms=train_transforms[i],
                 download=train_download[i],
-            )
-        )
+            ))
 
     val_set = VOCSegmentation(
         root=val_dir,
