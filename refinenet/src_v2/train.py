@@ -88,11 +88,11 @@ def setup_data_loaders(args):
     )
     IMG_MEAN = torch.tensor(np.array([0.485, 0.456, 0.406]).reshape((3, 1, 1)))
     IMG_STD = torch.tensor(np.array([0.229, 0.224, 0.225]).reshape((3, 1, 1)))
-    transform =   transforms.Compose([pytorch_utils.Transforms.TargetAsLong('mask'), pytorch_utils.Transforms.Normalize(IMG_MEAN, IMG_STD, cpu_mode = True), pytorch_utils.Transforms.AsFloat()])
+    transform =   transforms.Compose([pytorch_utils.Transforms.TargetAsLong('mask'), pytorch_utils.Transforms.Normalize(IMG_MEAN, IMG_STD, cpu_mode = False), pytorch_utils.Transforms.AsFloat()])
     print("using train path:", args.train_path, "num_imgs:", args.num_imgs)
 
-    train_sets =  [pytorch_utils.DataLoader.DataLoaderSegmentation(args.train_path, num_imgs = args.num_imgs, transform =transform, cpu_mode = True)]
-    val_set = pytorch_utils.DataLoader.DataLoaderSegmentation(args.val_dir, transform = transform, cpu_mode = True)
+    train_sets =  [pytorch_utils.DataLoader.DataLoaderSegmentation(args.train_path, num_imgs = args.num_imgs, transform =transform, limit_imgs = args.limit_imgs, cpu_mode = False)]
+    val_set = pytorch_utils.DataLoader.DataLoaderSegmentation(args.val_dir, transform = transform, limit_imgs = args.limit_imgs,  cpu_mode = False)
 
 
     # train_sets, val_set = get_datasets(

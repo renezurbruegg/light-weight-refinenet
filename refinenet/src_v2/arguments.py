@@ -140,6 +140,7 @@ def get_arguments():
 
     parser.add_argument("--train_path", type = str)
     parser.add_argument("--num_imgs", type = int, default = None)
+    parser.add_argument("--limit_imgs", type = int, default = None)
 
     # Checkpointing configuration
     parser.add_argument("--ckpt-dir", type=str, default="./checkpoints/")
