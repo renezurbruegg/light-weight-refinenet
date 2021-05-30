@@ -92,7 +92,7 @@ def setup_data_loaders(args):
     print("using train path:", args.train_path, "num_imgs:", args.num_imgs)
 
     train_sets =  [pytorch_utils.DataLoader.DataLoaderSegmentation(args.train_path, num_imgs = args.num_imgs, transform =transform, limit_imgs = args.limit_imgs, cpu_mode = False)]
-    val_set = pytorch_utils.DataLoader.DataLoaderSegmentation(args.val_dir, transform = transform, limit_imgs = args.limit_imgs,  cpu_mode = False)
+    val_set = pytorch_utils.DataLoader.DataLoaderSegmentation(args.val_dir, transform = transform, cpu_mode = False)
 
 
     # train_sets, val_set = get_datasets(
