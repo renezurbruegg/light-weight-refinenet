@@ -3,8 +3,8 @@ import logging
 import numpy as np
 
 import sys
-sys.path.append("/home/rene/catkin_ws/src/refinenet")
-sys.path.append("/home/rene/catkin_ws/src/refinenet/refinenet")
+sys.path.append("/cluster/home/zrene/thesis/light-weight-refinenet/")
+sys.path.append("/cluster/home/zrene/thesis/light-weight-refinenet/refinenet")
 
 # pytorch libs
 import torch

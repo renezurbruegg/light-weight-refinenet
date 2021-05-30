@@ -49,12 +49,12 @@ def get_arguments():
     parser.add_argument(
         "--enc-lr",
         type=float,
-        default=4e-4,
+        default=8e-4,
     )
     parser.add_argument(
         "--dec-lr",
         type=float,
-        default=4e-3,
+        default=8e-3,
     )
     parser.add_argument(
         "--enc-weight-decay",
@@ -219,7 +219,7 @@ def get_arguments():
         "--epochs-per-stage",
         type=int,
         nargs="+",
-        default=(100, 100, 100),
+        default=(150, 150, 100),
     )
     stage_parser.add_argument("--val-every",
                               type=int,
