@@ -3,12 +3,6 @@ import logging
 import numpy as np
 
 import sys
-# sys.path.append("/cluster/home/zrene/thesis/light-weight-refinenet/")
-# sys.path.append("/cluster/home/zrene/thesis/light-weight-refinenet/refinenet")
-
-sys.path.append("/home/rene/catkin_ws/src/refinenet_fork/light-weight-refinenet/")
-sys.path.append("/home/rene/catkin_ws/src/refinenet_fork/light-weight-refinenet/refinenet")
-
 # pytorch libs
 import torch
 import torch.nn as nn
@@ -24,6 +18,7 @@ from optimisers import get_optimisers, get_lr_schedulers
 
 from embodied_active_learning.utils import pytorch_utils
 from torchvision import transforms
+
 def setup_network(args, device):
     logger = logging.getLogger(__name__)
     segmenter = get_segmenter(
