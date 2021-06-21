@@ -149,8 +149,8 @@ class PCA(nn.Module):
     self.components = torch.from_numpy(pca.components_.T)
 
     if torch.cuda.is_available():
-      self.mean = self.mean.cuda()
-      self.components = self.components.cuda()
+      self.mean = torch.nn.parameter.Parameter(self.mean.cuda())
+      self.components = torch.nn.parameter.Parameter(self.components.cuda())
 
   def fit(self, features):
     sklearn_pca = SKLEARN_PCA(self.num_reduced_features)
@@ -231,9 +231,23 @@ class _TorchGMM(nn.Module):
       means = means.cuda()
       covariances = covariances.cuda()
       weights = weights.cuda()
-    mix = torch.distributions.Categorical(weights)
-    comp = torch.distributions.MultivariateNormal(means, covariances)
+    self.means = torch.nn.parameter.Parameter(means)
+    self.covariances = torch.nn.parameter.Parameter(covariances)
+    self.weights = torch.nn.parameter.Parameter(weights)
+
+
+    mix = torch.distributions.Categorical(self.weights)
+    comp = torch.distributions.MultivariateNormal(self.means, self.covariances)
     self.gmm = torch.distributions.MixtureSameFamily(mix, comp)
+
+  def load_state_dict(self, state_dict: 'OrderedDict[str, Tensor]',
+                        strict: bool = True):
+    super(_TorchGMM, self).load_state_dict(state_dict, strict)
+    # Ugly fix to make sure distributions can be loaded -> recreate distributions
+    mix = torch.distributions.Categorical(self.weights)
+    comp = torch.distributions.MultivariateNormal(self.means, self.covariances)
+    self.gmm = torch.distributions.MixtureSameFamily(mix, comp)
+    print("Recreated GMM")
 
   def forward(self, x):
     return torch.unsqueeze(self.gmm.log_prob(x), 3)
