@@ -231,9 +231,10 @@ class _TorchGMM(nn.Module):
       means = means.cuda()
       covariances = covariances.cuda()
       weights = weights.cuda()
-    self.means = torch.nn.parameter.Parameter(means)
-    self.covariances = torch.nn.parameter.Parameter(covariances)
-    self.weights = torch.nn.parameter.Parameter(weights)
+
+    self.register_buffer('means', means)
+    self.register_buffer('covariances', covariances)
+    self.register_buffer('weights', weights)
 
 
     mix = torch.distributions.Categorical(self.weights)
@@ -247,7 +248,6 @@ class _TorchGMM(nn.Module):
     mix = torch.distributions.Categorical(self.weights)
     comp = torch.distributions.MultivariateNormal(self.means, self.covariances)
     self.gmm = torch.distributions.MixtureSameFamily(mix, comp)
-    print("Recreated GMM")
 
   def forward(self, x):
     return torch.unsqueeze(self.gmm.log_prob(x), 3)
