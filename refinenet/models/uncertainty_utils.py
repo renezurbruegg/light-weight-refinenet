@@ -40,8 +40,8 @@ class UncertaintyModel(nn.Module):
       feature_layer = getattr(self.base_model, feature_layer_name)
       # register hook to get features
       feature_layer.register_forward_hook(get_activation(feature_layer_name))
-
-    self.clustering = FeatureClustering(n_feature_for_uncertainty, n_components=n_components, weights=weights,
+    # TODO not hardcoded
+    self.clustering = FeatureClustering(256, n_feature_for_uncertainty, n_components=n_components, weights=weights,
                                         means=means, covariances=covariances, covariance_type=covariance_type,
                                         reg_covar=reg_covar)
 
@@ -109,6 +109,7 @@ class FeatureClustering(nn.Module):
   """ Feature clustering module. Performs PCA and then cluster using GMM """
 
   def __init__(self,
+               n_in_features,
                n_features,
                n_components,
                apply_pca=True,
@@ -121,7 +122,7 @@ class FeatureClustering(nn.Module):
     self.apply_pca = apply_pca
     self.n_features = n_features
     self.gmm = _TorchGMM(n_features, n_components, means, covariances, weights, covariance_type, reg_covar)
-    self.pca = PCA(n_features)
+    self.pca = PCA(n_in_features, n_features)
 
   def fit(self, features):
     reduced_features = self.pca.fit(features)
@@ -137,20 +138,27 @@ class FeatureClustering(nn.Module):
 class PCA(nn.Module):
   """ PCA implementation based on sklearn. """
 
-  def __init__(self, num_reduced_features, mean=None, components=None):
+  def __init__(self, num_in_features, num_reduced_features, mean=None, components = None):
     super().__init__()
+    if mean is None:
+      mean = torch.empty((num_in_features, ))
+    if components is None:
+      components = torch.empty((num_in_features, num_reduced_features))
+
     # Mean that should be subtracted [1, n_features]
-    self.mean = mean
-    self.components = components
+    self.mean =  torch.nn.parameter.Parameter(mean)
+    self.components =  torch.nn.parameter.Parameter(components)
     self.num_reduced_features = num_reduced_features
+    self.fitted = False
 
   def from_sklearn(self, pca):
-    self.mean = torch.from_numpy(pca.mean_)
-    self.components = torch.from_numpy(pca.components_.T)
 
     if torch.cuda.is_available():
-      self.mean = torch.nn.parameter.Parameter(self.mean.cuda())
-      self.components = torch.nn.parameter.Parameter(self.components.cuda())
+      self.mean = torch.nn.parameter.Parameter(torch.from_numpy(pca.mean_).cuda())
+      self.components = torch.nn.parameter.Parameter(torch.from_numpy(pca.components_.T).cuda())
+    else:
+      self.mean = torch.nn.parameter.Parameter(torch.from_numpy(pca.mean_))
+      self.components = torch.nn.parameter.Parameter(torch.from_numpy(pca.components_.T))
 
   def fit(self, features):
     sklearn_pca = SKLEARN_PCA(self.num_reduced_features)
@@ -158,10 +166,15 @@ class PCA(nn.Module):
                                                                                 self.num_reduced_features))
     sklearn_pca.fit(features)
     self.from_sklearn(sklearn_pca)
+    self.fitted = True
     return sklearn_pca.transform(features)
 
+  def _load_from_state_dict(self, *args, **kwargs):
+    super(PCA, self)._load_from_state_dict(*args, **kwargs)
+    self.fitted = True
+
   def forward(self, features):
-    if self.mean is None or self.components is None:
+    if not self.fitted:
       raise RuntimeError("[ERROR] PCA module has not been fit!")
 
     n_feat = features.shape[-1]
@@ -241,9 +254,8 @@ class _TorchGMM(nn.Module):
     comp = torch.distributions.MultivariateNormal(self.means, self.covariances)
     self.gmm = torch.distributions.MixtureSameFamily(mix, comp)
 
-  def load_state_dict(self, state_dict: 'OrderedDict[str, Tensor]',
-                        strict: bool = True):
-    super(_TorchGMM, self).load_state_dict(state_dict, strict)
+  def _load_from_state_dict(self, *args, **kwargs):
+    super(_TorchGMM, self)._load_from_state_dict(*args, **kwargs)
     # Ugly fix to make sure distributions can be loaded -> recreate distributions
     mix = torch.distributions.Categorical(self.weights)
     comp = torch.distributions.MultivariateNormal(self.means, self.covariances)
