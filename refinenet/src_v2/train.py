@@ -26,8 +26,8 @@ def setup_network(args, device):
         enc_pretrained=args.enc_pretrained,
         num_classes=args.num_classes,
     ).to(device)
-    if device == "cuda":
-        segmenter = nn.DataParallel(segmenter)
+    # if device == "cuda":
+    #     segmenter = nn.DataParallel(segmenter)
     logger.info(
         " Loaded Segmenter {}, ImageNet-Pre-Trained={}, #PARAMS={:3.2f}M".
         format(
