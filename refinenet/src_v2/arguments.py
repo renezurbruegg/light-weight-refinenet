@@ -227,7 +227,7 @@ def get_arguments():
         "--epochs-per-stage",
         type=int,
         nargs="+",
-        default=(150, 150, 100),
+        default=(100, 80, 100),
     )
     stage_parser.add_argument("--val-every",
                               type=int,
