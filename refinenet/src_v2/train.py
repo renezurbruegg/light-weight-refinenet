@@ -98,7 +98,12 @@ def setup_data_loaders(args):
                                       pytorch_utils.Transforms.AsDensetorchSample(['mask']),
                                       val_transforms])
 
-    train_sets =  [pytorch_utils.DataLoader.DataLoaderSegmentation(args.train_path, num_imgs = args.num_imgs, transform =transform, limit_imgs = args.limit_imgs, cpu_mode = True)]
+
+    if args.nyu_split_ratio == 0:
+        train_sets =  [pytorch_utils.DataLoader.DataLoaderSegmentation(args.train_path, num_imgs = args.num_imgs, transform =transform, limit_imgs = args.limit_imgs, cpu_mode = True)]
+    else:
+        train_sets =  [pytorch_utils.get_nyu_custom_combined_ds(args.train_path, num_imgs = args.num_imgs, transform = transform, limit_imgs = args.limit_imgs, cpu_mode = True, nyu_ratio = args.nyu_split_ratio)]
+
     val_set = pytorch_utils.DataLoader.DataLoaderSegmentation(args.val_dir, transform = valid_Transform, cpu_mode = True)
 
 

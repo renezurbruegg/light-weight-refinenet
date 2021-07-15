@@ -1,8 +1,8 @@
 import logging
 import re
 
-from models.mobilenet import mbv2
-from models.resnet import rf_lw50, rf_lw101, rf_lw152
+from refinenet.models.mobilenet import mbv2
+from refinenet.models.resnet import rf_lw50, rf_lw101, rf_lw152
 
 
 def get_segmenter(

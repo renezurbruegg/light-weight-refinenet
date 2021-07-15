@@ -137,6 +137,13 @@ def get_arguments():
         help="Only used if dataset_type == torchvision.",
     )
 
+    parser.add_argument(
+        "--nyu_split_ratio",
+        type=float,
+        default=0,
+        help="Split ratio of NYU vs Airsim",
+    )
+
 
     parser.add_argument("--train_path", type = str)
     parser.add_argument("--num_imgs", type = int, default = None)
